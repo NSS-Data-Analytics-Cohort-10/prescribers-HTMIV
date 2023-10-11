@@ -11,13 +11,24 @@ SELECT * FROM ZIP_FIPS LIMIT 10;
 
 -- 1. 
 --     a. Which prescriber had the highest total number of claims (totaled over all drugs)? Report the npi and the total number of claims.
-
+WITH X AS (
 SELECT
-
+	NPI,
+	PRESCRIBER_NAME,
+	TOTAL_CLAIMS,
+	RANK () OVER (ORDER BY TOTAL_CLAIMS DESC) RANKING
+FROM(SELECT
+	NPPES_PROVIDER_LAST_ORG_NAME||', '||NPPES_PROVIDER_FIRST_NAME PRESCRIBER_NAME,
+	P.NPI,
+	SUM(COALESCE(PR.TOTAL_CLAIM_COUNT,0)) TOTAL_CLAIMS
 FROM
 	PRESCRIBER P 
 	INNER JOIN PRESCRIPTION PR ON P.NPI = PR.NPI
-    
+GROUP BY 
+	P.NPI,
+	PRESCRIBER_NAME)
+) SELECT * FROM X WHERE RANKING = 1
+
 --     b. Repeat the above, but this time report the nppes_provider_first_name, nppes_provider_last_org_name,  specialty_description, and the total number of claims.
 
 -- 2. 
